@@ -21,6 +21,8 @@ int sendPong(int client_fd)
   char resp_buf[8] = "+PONG\r\n";
   send(client_fd, resp_buf, 7, 0);
   close(client_fd);
+
+  return 0;
 }
 
 int main(int argc, char **argv)
