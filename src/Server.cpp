@@ -8,6 +8,21 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
+int sendPong(int client_fd)
+{
+  char buffer[100];
+  int recv_resp = recv(client_fd, buffer, 100, 0);
+  if (recv_resp <= 0)
+  {
+    std::cerr << "recv failed\n";
+    return 1;
+  }
+
+  char resp_buf[8] = "+PONG\r\n";
+  send(client_fd, resp_buf, 8, 0);
+  close(client_fd);
+}
+
 int main(int argc, char **argv)
 {
 
@@ -52,9 +67,18 @@ int main(int argc, char **argv)
 
   std::cout << "Waiting for a client to connect...\n";
 
-  accept(server_fd, (struct sockaddr *)&client_addr, (socklen_t *)&client_addr_len);
+  int client_fd = accept(server_fd, (struct sockaddr *)&client_addr, (socklen_t *)&client_addr_len);
+  if (client_fd == -1)
+  {
+    std::cerr << "accept failed\n";
+    return 1;
+  }
   std::cout << "Client connected\n";
 
+  if (sendPong(client_fd) == 1)
+  {
+    return 1;
+  }
   close(server_fd);
 
   return 0;
