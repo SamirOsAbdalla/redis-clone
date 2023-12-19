@@ -10,17 +10,9 @@
 
 int sendPong(int client_fd)
 {
-  char buffer[100];
-  int recv_resp = recv(client_fd, buffer, 100, 0);
-  if (recv_resp <= 0)
-  {
-    std::cerr << "recv failed\n";
-    return 1;
-  }
 
   char resp_buf[8] = "+PONG\r\n";
   send(client_fd, resp_buf, 7, 0);
-  close(client_fd);
 
   return 0;
 }
@@ -66,7 +58,6 @@ int main(int argc, char **argv)
 
   struct sockaddr_in client_addr;
   int client_addr_len = sizeof(client_addr);
-
   std::cout << "Waiting for a client to connect...\n";
 
   int client_fd = accept(server_fd, (struct sockaddr *)&client_addr, (socklen_t *)&client_addr_len);
@@ -77,10 +68,21 @@ int main(int argc, char **argv)
   }
   std::cout << "Client connected\n";
 
-  if (sendPong(client_fd) == 1)
+  char buffer[100];
+  while (true)
   {
-    return 1;
+    int recv_resp = recv(client_fd, buffer, 100, 0);
+    if (recv_resp <= 0)
+    {
+      break;
+    }
+
+    if (sendPong(client_fd) == 1)
+    {
+      return 1;
+    }
   }
+  close(client_fd);
   close(server_fd);
 
   return 0;
