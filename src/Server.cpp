@@ -7,14 +7,33 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-
+#include <thread>
 int sendPong(int client_fd)
 {
 
   char resp_buf[8] = "+PONG\r\n";
-  send(client_fd, resp_buf, 7, 0);
+  return (send(client_fd, resp_buf, 7, 0));
+}
 
-  return 0;
+void handleClientConnection(int client_fd)
+{
+  std::cout << "Client connected\n";
+  char buffer[100];
+
+  int recv_resp = recv(client_fd, buffer, 100, 0);
+  if (recv_resp == -1)
+  {
+    std::cerr << "Error reading from client_fd";
+    exit(1);
+  }
+
+  if (sendPong(client_fd) == 1)
+  {
+    std::cerr << "Error sending PONG response";
+    exit(1);
+  }
+
+  close(client_fd);
 }
 
 int main(int argc, char **argv)
@@ -60,29 +79,14 @@ int main(int argc, char **argv)
   int client_addr_len = sizeof(client_addr);
   std::cout << "Waiting for a client to connect...\n";
 
-  int client_fd = accept(server_fd, (struct sockaddr *)&client_addr, (socklen_t *)&client_addr_len);
-  if (client_fd == -1)
-  {
-    std::cerr << "accept failed\n";
-    return 1;
-  }
-  std::cout << "Client connected\n";
+  int client_fd;
 
-  char buffer[100];
-  while (true)
+  while ((client_fd = accept(server_fd, (struct sockaddr *)&client_addr, (socklen_t *)&client_addr_len)) != -1)
   {
-    int recv_resp = recv(client_fd, buffer, 100, 0);
-    if (recv_resp <= 0)
-    {
-      break;
-    }
-
-    if (sendPong(client_fd) == 1)
-    {
-      return 1;
-    }
+    std::thread worker(handleClientConnection, client_fd);
+    worker.join();
   }
-  close(client_fd);
+
   close(server_fd);
 
   return 0;
