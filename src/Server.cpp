@@ -7,7 +7,9 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <pthread.h>
 #include <thread>
+
 int sendPong(int client_fd)
 {
 
@@ -79,12 +81,13 @@ int main(int argc, char **argv)
   int client_addr_len = sizeof(client_addr);
   std::cout << "Waiting for a client to connect...\n";
 
-  int client_fd;
-
-  while ((client_fd = accept(server_fd, (struct sockaddr *)&client_addr, (socklen_t *)&client_addr_len)) != -1)
+  while (true)
   {
-    std::thread worker(handleClientConnection, client_fd);
-    worker.join();
+    int client_fd;
+    if ((client_fd = accept(server_fd, (struct sockaddr *)&client_addr, (socklen_t *)&client_addr_len)) != -1)
+    {
+      std::thread worker(handleClientConnection, client_fd);
+    }
   }
 
   close(server_fd);
