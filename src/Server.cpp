@@ -22,17 +22,24 @@ void handleClientConnection(int client_fd)
   std::cout << "Client connected\n";
   char buffer[100];
 
-  int recv_resp = recv(client_fd, buffer, 100, 0);
-  if (recv_resp == -1)
+  while (true)
   {
-    std::cerr << "Error reading from client_fd";
-    exit(1);
-  }
+    int recv_resp = recv(client_fd, buffer, 100, 0);
+    if (recv_resp == -1)
+    {
+      std::cerr << "Error reading from client_fd";
+      exit(1);
+    }
+    else if (recv_resp == 0)
+    {
+      break;
+    }
 
-  if (sendPong(client_fd) == -1)
-  {
-    std::cerr << "Error sending PONG response";
-    exit(1);
+    if (sendPong(client_fd) == -1)
+    {
+      std::cerr << "Error sending PONG response";
+      exit(1);
+    }
   }
 
   close(client_fd);
