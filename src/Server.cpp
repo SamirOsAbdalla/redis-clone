@@ -13,8 +13,8 @@
 int sendPong(int client_fd)
 {
 
-  char resp_buf[8] = "+PONG\r\n";
-  return (send(client_fd, resp_buf, 7, 0));
+  const char *resp_buf = "+PONG\r\n";
+  return (send(client_fd, resp_buf, strlen(resp_buf), 0));
 }
 
 void handleClientConnection(int client_fd)
