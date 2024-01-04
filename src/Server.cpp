@@ -1,4 +1,6 @@
 #include <iostream>
+#include <thread>
+#include <vector>
 #include <cstdlib>
 #include <string>
 #include <cstring>
@@ -7,8 +9,6 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-#include <pthread.h>
-#include <thread>
 
 int sendPong(int client_fd)
 {
@@ -81,15 +81,25 @@ int main(int argc, char **argv)
   int client_addr_len = sizeof(client_addr);
   std::cout << "Waiting for a client to connect...\n";
 
+  std::vector<std::thread> thread_vec;
   while (true)
   {
     int client_fd;
     if ((client_fd = accept(server_fd, (struct sockaddr *)&client_addr, (socklen_t *)&client_addr_len)) != -1)
     {
-      std::thread worker(handleClientConnection, client_fd);
+      thread_vec.push_back(std::thread(handleClientConnection, client_fd));
+    }
+    else
+    {
+      std::cerr << "Error in accept sys call";
+      exit(1);
     }
   }
 
+  for (std::thread &thr : thread_vec)
+  {
+    thr.join();
+  }
   close(server_fd);
 
   return 0;
