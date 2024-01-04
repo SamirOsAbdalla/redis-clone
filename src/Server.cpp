@@ -29,7 +29,7 @@ void handleClientConnection(int client_fd)
     exit(1);
   }
 
-  if (sendPong(client_fd) == 1)
+  if (sendPong(client_fd) != -1)
   {
     std::cerr << "Error sending PONG response";
     exit(1);
